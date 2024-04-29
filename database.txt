@@ -1,0 +1,24 @@
+For alice:
+
+CREATE (:User {name: 'Alice'})
+CREATE (:Role {name: 'Admin'})
+CREATE (:Policy {name: 'Policy1'})
+CREATE (:Permission {name: 'Read'})
+CREATE (:Resource {name: 'file.txt', type: 'protected file'})
+
+
+MATCH (user:User {name: 'Alice'})
+MATCH (role:Role {name: 'Admin'})
+MERGE (user)-[:HAS_ROLE]->(role)
+
+WITH role
+MATCH (policy:Policy {name: 'Policy1'})
+MERGE (role)-[:HAS_POLICY]->(policy)
+
+WITH policy
+MATCH (permission:Permission {name: 'Read'})
+MERGE (policy)-[:HAS_PERMISSION]->(permission)
+
+WITH permission
+MATCH (resource:Resource {name: 'file.txt', type: 'protected file'})
+MERGE (permission)-[:HAS_RESOURCE]->(resource)
