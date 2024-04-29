@@ -1,0 +1,25 @@
+User table
+    -Name
+Role table
+    -admin, etc
+Policies table
+    -read_only, access_all
+Permissions table
+    -open, read, etc
+Resource table eg. file.txt
+    - Resource type eg. protected file
+User role table
+    -join users and roles
+Role policy table
+Permission resource table
+
+
+User end:
+Which user are you?
+What would you like to do?
+Program will say if they are allowed to or not.
+
+
+Maybe neo4jaura
+
+neo4j 
