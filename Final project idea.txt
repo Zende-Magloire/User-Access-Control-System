@@ -5,7 +5,7 @@ Role table
 Policies table
     -read_only, access_all
 Permissions table
-    -open, read, etc
+    -write, read, delete, create, etc
 Resource table eg. file.txt
     - Resource type eg. protected file
 User role table
