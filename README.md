@@ -1,1 +1,3 @@
 # User-Access-Control-System
+
+This project is a database system designed to manage user access to sensitive information or systems. It includes tables for user profiles, access permissions, and access logs. The user table stores user information such as name, and the role table defines different roles (e.g., admin, user) that users can have. The policies table stores policies that define access rules, while the permissions table defines different permissions (e.g., open, read) that can be assigned to roles. The resource table stores information about resources (e.g., files) that users can access. The user role table links users to roles, and the role policy table links roles to policies. The permission resource table links permissions to resources.
