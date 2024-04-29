@@ -21,12 +21,11 @@ def check_access(user_name, action):
         else:
             print(f"{user_name} is not allowed to {action}.")
 
-user_name = input("Enter your name: ")
-action = input("Enter the action you want to perform (include the file extension): ")
+user_name = input("Enter your name: ").lower()
+action = input("Enter the action you want to perform: ").lower()
 
 check_access(user_name, action)
 
+
+
 driver.close()
-
-
-#case sensitive
