@@ -34,6 +34,11 @@ CREATE (:User {name: 'tim'})
 CREATE (:User {name: 'zende'})
 CREATE (:User {name: 'vakul'})
 
+//roles
+CREATE (:Role {name: 'admin'})
+CREATE (:Role {name: 'professor'})
+CREATE (:Role {name: 'student'})
+
 //permissions
 CREATE (:Permission {name: 'delete'})
 CREATE (:Permission {name: 'create'})
