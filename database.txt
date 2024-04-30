@@ -22,3 +22,176 @@ MERGE (policy)-[:HAS_PERMISSION]->(permission)
 WITH permission
 MATCH (resource:Resource {name: 'file.txt', type: 'protected file'})
 MERGE (permission)-[:HAS_RESOURCE]->(resource)
+
+
+Adding others:
+//users
+CREATE (:User {name: 'susan'})
+CREATE (:User {name: 'josh'})
+CREATE (:User {name: 'dan'})
+CREATE (:User {name: 'aj'})
+CREATE (:User {name: 'tim'})
+CREATE (:User {name: 'zende'})
+CREATE (:User {name: 'vakul'})
+
+//permissions
+CREATE (:Permission {name: 'delete'})
+CREATE (:Permission {name: 'create'})
+CREATE (:Permission {name: 'write'})
+
+//Policies
+CREATE (:Policy {name: 'Policy2'})
+CREATE (:Policy {name: 'Policy3'})
+CREATE (:Policy {name: 'Policy4'})
+
+//resources
+CREATE (:Resource {name: 'my_grades.txt', type: 'restricted'})
+CREATE (:Resource {name: 'student_grades.txt', type: 'protected'})
+CREATE (:Resource {name: 'my_submissions.txt', type: 'restricted'})
+CREATE (:Resource {name: 'student_submissions.txt', type: 'protected'})
+CREATE (:Resource {name: 'assignments.pdf', type: 'access_controlled'})
+CREATE (:Resource {name: 'confidential_report.pdf', type: 'protected'})
+CREATE (:Resource {name: 'meeting_minutes.doc', type: 'protected'})
+
+//user match to role
+MATCH (user:User {name: 'susan'})
+MATCH (role:Role {name: 'admin'})
+MERGE (user)-[:HAS_ROLE]->(role)
+
+WITH 1 as _
+MATCH (user:User {name: 'josh'})
+MATCH (role:Role {name: 'professor'})
+MERGE (user)-[:HAS_ROLE]->(role)
+
+WITH 1 as _
+MATCH (user:User {name: 'dan'})
+MATCH (role:Role {name: 'professor'})
+MERGE (user)-[:HAS_ROLE]->(role)
+
+WITH 1 as _
+MATCH (user:User {name: 'aj'})
+MATCH (role:Role {name: 'professor'})
+MERGE (user)-[:HAS_ROLE]->(role)
+
+WITH 1 as _
+MATCH (user:User {name: 'tim'})
+MATCH (role:Role {name: 'student'})
+MERGE (user)-[:HAS_ROLE]->(role)
+
+WITH 1 as _
+MATCH (user:User {name: 'zende'})
+MATCH (role:Role {name: 'student'})
+MERGE (user)-[:HAS_ROLE]->(role)
+
+WITH 1 as _
+MATCH (user:User {name: 'vakul'})
+MATCH (role:Role {name: 'student'})
+MERGE (user)-[:HAS_ROLE]->(role)
+
+
+//role match to policy
+MATCH (user:User)-[:HAS_ROLE]->(role:Role)
+WITH user, role
+MATCH (policy:Policy)
+WHERE role.name = 'admin' AND policy.name = 'Policy1'
+MERGE (role)-[:HAS_POLICY]->(policy)
+
+WITH user, role
+MATCH (policy:Policy)
+WHERE role.name = 'professor' AND policy.name = 'Policy2'
+MERGE (role)-[:HAS_POLICY]->(policy)
+
+WITH user, role
+MATCH (policy:Policy)
+WHERE role.name = 'student' AND policy.name = 'Policy3'
+MERGE (role)-[:HAS_POLICY]->(policy)
+
+
+//policy match to permission and resource for admin
+MATCH (policy:Policy {name: 'Policy1'})
+MATCH (resource:Resource {name: 'confidential_report.pdf', type: 'protected'})
+MERGE (policy)-[:CAN_READ]->(resource)
+
+WITH policy
+MATCH (resource:Resource {name: 'meeting_minutes.doc', type: 'protected'})
+MERGE (policy)-[:CAN_READ]->(resource)
+
+WITH policy
+MATCH (resource:Resource)
+WHERE resource.type <> 'protected' AND resource.name <> 'confidential_report.pdf' AND resource.name <> 'meeting_minutes.doc'
+MERGE (policy)-[:CAN_READ]->(resource)
+
+WITH policy
+MATCH (resource:Resource {name: 'confidential_report.pdf', type: 'protected'})
+MERGE (policy)-[:CAN_WRITE]->(resource)
+
+WITH policy
+MATCH (resource:Resource {name: 'meeting_minutes.doc', type: 'protected'})
+MERGE (policy)-[:CAN_WRITE]->(resource)
+
+
+//policy match to permission and resource for faculty
+MATCH (policy:Policy {name: 'Policy2'})
+MATCH (resource:Resource {name: 'student_grades.txt', type: 'protected'})
+MERGE (policy)-[:CAN_READ]->(resource)
+
+WITH policy
+MATCH (resource:Resource {name: 'student_submissions.txt', type: 'protected'})
+MERGE (policy)-[:CAN_READ]->(resource)
+
+WITH policy
+MATCH (resource:Resource {name: 'student_grades.txt', type: 'protected'})
+MERGE (policy)-[:CAN_WRITE]->(resource)
+
+WITH policy
+MATCH (resource:Resource {name: 'student_grades.txt', type: 'protected'})
+MERGE (policy)-[:CAN_CREATE]->(resource)
+
+WITH policy
+MATCH (resource:Resource {name: 'assignments.pdf', type: 'access_controlled'})
+MERGE (policy)-[:CAN_READ]->(resource)
+
+WITH policy
+MATCH (resource:Resource {name: 'assignments.pdf', type: 'access_controlled'})
+MERGE (policy)-[:CAN_WRITE]->(resource)
+
+WITH policy
+MATCH (resource:Resource {name: 'assignments.pdf', type: 'access_controlled'})
+MERGE (policy)-[:CAN_CREATE]->(resource)
+
+WITH policy
+MATCH (resource:Resource {name: 'assignments.pdf', type: 'access_controlled'})
+MERGE (policy)-[:CAN_DELETE]->(resource)
+
+WITH policy
+MATCH (resource:Resource {name: 'meeting_minutes.doc', type: 'protected'})
+MERGE (policy)-[:CAN_WRITE]->(resource)
+
+WITH policy
+MATCH (resource:Resource)
+WHERE resource.type <> 'protected' AND resource.name <> 'student_grades.txt' AND resource.name <> 'student_submissions.txt' AND resource.name <> 'assignments.pdf'
+MERGE (policy)-[:CAN_READ]->(resource)
+
+
+
+//policy match to permission and resource for student
+MATCH (policy:Policy {name: 'Policy3'})
+MATCH (resource:Resource {name: 'my_grades.txt', type: 'restricted'})
+MERGE (policy)-[:CAN_READ]->(resource)
+
+WITH policy
+MATCH (resource:Resource {name: 'assignments.pdf', type: 'access_controlled'})
+MERGE (policy)-[:CAN_READ]->(resource)
+
+WITH policy
+MATCH (resource:Resource {name: 'my_submissions.txt', type: 'restricted'})
+MERGE (policy)-[:CAN_WRITE]->(resource)
+
+WITH policy
+MATCH (resource:Resource)
+WHERE resource.type <> 'restricted' AND resource.name <> 'my_grades.txt' AND resource.name <> 'assignments.pdf'
+MERGE (policy)-[:CAN_READ]->(resource)
+
+
+
+
