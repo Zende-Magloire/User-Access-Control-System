@@ -14,8 +14,8 @@ def check_access(user_name, action, resource_name):
             """,
             user_name=user_name,
             resource_name=resource_name,
-            action=action.upper()  
-            )
+            action=action.upper()
+        )
         record = result.single()
 
         if record:
@@ -25,14 +25,17 @@ def check_access(user_name, action, resource_name):
             else:
                 print(f"{record['user']} is not allowed to {action} {resource_name}")
         else:
-            print(f"No records for {user_name}.")
-        print(f"User: {record['user']}, Role: {record['role']}, Policy: {record['policy']}, Resource: {record['resource']}, Action: {record['action']}, Allowed: {allowed}")
+            print(f"{user_name.capitalize()} is not allowed to {action} {resource_name}")
+
+        # if record:
+        #     print(f"User: {record['user']}, Role: {record['role']}, Policy: {record['policy']}, Resource: {record['resource']}, Action: {record['action']}, Allowed: {allowed}")
 
 user_name = input("Enter your name: ").lower()
 action = input("Enter the action you want to perform (e.g., read, write, delete): ").lower()
-resource_name = input("Enter the resource name: ")
+resource_name = input("Enter the resource name (including the file extension): ")
 
 check_access(user_name, action, resource_name)
+
 
 
 
