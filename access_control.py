@@ -1,4 +1,7 @@
+from flask import Flask, render_template, request
 from neo4j import GraphDatabase
+
+app = Flask(__name__)
 
 uri = "neo4j+s://a4aa5801.databases.neo4j.io"
 username = "neo4j"
@@ -21,22 +24,23 @@ def check_access(user_name, action, resource_name):
         if record:
             allowed = record["allowed"]
             if allowed:
-                print(f"{record['user']} is allowed to {action} {resource_name}")
+                result_text = f"{record['user']} is allowed to {action} {resource_name}"
             else:
-                print(f"{record['user']} is not allowed to {action} {resource_name}")
+                result_text = f"{record['user']} is not allowed to {action} {resource_name}"
         else:
-            print(f"{user_name.capitalize()} is not allowed to {action} {resource_name}")
+            result_text = f"{user_name.capitalize()} is not allowed to {action} {resource_name}"
 
-        # if record:
-        #     print(f"User: {record['user']}, Role: {record['role']}, Policy: {record['policy']}, Resource: {record['resource']}, Action: {record['action']}, Allowed: {allowed}")
+    return result_text
 
-user_name = input("Enter your name: ").lower()
-action = input("Enter the action you want to perform (e.g., read, write, delete): ").lower()
-resource_name = input("Enter the resource name (including the file extension): ")
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    if request.method == 'POST':
+        user_name = request.form['user_name'].lower()
+        action = request.form['action'].lower()
+        resource_name = request.form['resource_name']
+        result = check_access(user_name, action, resource_name)
+        return render_template('result.html', result=result)
+    return render_template('index.html')
 
-check_access(user_name, action, resource_name)
-
-
-
-
-driver.close()
+if __name__ == '__main__':
+    app.run(debug=True)

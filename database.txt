@@ -125,11 +125,14 @@ MERGE (policy)-[:CAN_WRITE]->(resource)
 
 
 //policy match to permission and resource for faculty
+MATCH (policy:Policy {name: 'Policy2'})
+MATCH (resource1:Resource {name: 'assignments.pdf', type: 'access_controlled'})
 MERGE (policy)-[:CAN_READ]->(resource1)
 MERGE (policy)-[:CAN_WRITE]->(resource1)
 MERGE (policy)-[:CAN_CREATE]->(resource1)
 MERGE (policy)-[:CAN_DELETE]->(resource1)
 
+MATCH (policy:Policy {name: 'Policy2'})
 MATCH (resource2:Resource {name: 'student_grades.txt', type: 'protected'})
 MERGE (policy)-[:CAN_READ]->(resource2)
 MERGE (policy)-[:CAN_WRITE]->(resource2)
