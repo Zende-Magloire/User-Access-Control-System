@@ -24,11 +24,11 @@ def check_access(user_name, action, resource_name):
         if record:
             allowed = record["allowed"]
             if allowed:
-                result_text = f"{record['user']} is allowed to {action} {resource_name}"
+                result_text = f"{record['user'].capitalize()} is allowed to {action} {resource_name}"
             else:
-                result_text = f"{record['user']} is not allowed to {action} {resource_name}"
+                result_text = f"{record['user'].capitalize()} is not allowed to {action} {resource_name}"
         else:
-            result_text = f"{user_name.capitalize()} is not allowed to {action} {resource_name}"
+            result_text = f"{user_name.capitalize()} is not found in the database"
 
     return result_text
 
@@ -47,20 +47,34 @@ def add_user():
     result_text = None
     if request.method == 'POST':
         user_name = request.form['user_name'].lower()
-        roles = [role.strip() for role in request.form['roles'].split(',')]
-        with driver.session() as session:
-            session.run("CREATE (:User {name: $name})", name=user_name)
-            for role in roles:
-                session.run(
-                    """
-                    MATCH (user:User {name: $user_name})
-                    MATCH (role:Role {name: $role})
-                    MERGE (user)-[:HAS_ROLE]->(role)
-                    """,
-                    user_name=user_name,
-                    role=role
-                )
-        result_text = f"User '{user_name}' added successfully."
+        roles_input = request.form['roles']
+        if not user_name or not roles_input:
+            result_text = "User name and roles cannot be empty."
+        else:
+            with driver.session() as session:
+                existing_user = session.run("MATCH (u:User {name: $name}) RETURN COUNT(u) AS count", name=user_name)
+                if existing_user.single()["count"] > 0:
+                    result_text = f"User '{user_name}' already exists."
+                else:
+                    roles = [role.strip() for role in roles_input.split(',')]
+                    existing_roles = session.run("MATCH (r:Role) RETURN r.name AS name")
+                    existing_roles = [record["name"] for record in existing_roles]
+                    roles_not_found = [role for role in roles if role not in existing_roles]
+                    if roles_not_found:
+                        result_text = f"Roles not found in database: {', '.join(roles_not_found)}"
+                    else:
+                        session.run("CREATE (:User {name: $name})", name=user_name)
+                        for role in roles:
+                            session.run(
+                                """
+                                MATCH (user:User {name: $user_name})
+                                MATCH (role:Role {name: $role})
+                                MERGE (user)-[:HAS_ROLE]->(role)
+                                """,
+                                user_name=user_name,
+                                role=role
+                            )
+                        result_text = f"User '{user_name}' added successfully."
 
     return render_template('add_user.html', result=result_text)
 
