@@ -34,20 +34,27 @@ CREATE (:User {name: 'tim'})
 CREATE (:User {name: 'zende'})
 CREATE (:User {name: 'vakul'})
 
+CREATE (:User {name: 'roellke'})
+
 //roles
 CREATE (:Role {name: 'admin'})
 CREATE (:Role {name: 'professor'})
 CREATE (:Role {name: 'student'})
 
+CREATE (:Role {name: 'auditor'})
+CREATE (:Role {name: 'employee'})
+
 //permissions
 CREATE (:Permission {name: 'delete'})
 CREATE (:Permission {name: 'create'})
 CREATE (:Permission {name: 'write'})
+CREATE (:Permission {name: 'read'})
 
 //Policies
 CREATE (:Policy {name: 'Policy2'})
 CREATE (:Policy {name: 'Policy3'})
 CREATE (:Policy {name: 'Policy4'})
+CREATE (:Policy {name: 'Policy5'})
 
 //resources
 CREATE (:Resource {name: 'my_grades.txt', type: 'restricted'})
@@ -57,6 +64,8 @@ CREATE (:Resource {name: 'student_submissions.txt', type: 'protected'})
 CREATE (:Resource {name: 'assignments.pdf', type: 'access_controlled'})
 CREATE (:Resource {name: 'confidential_report.pdf', type: 'protected'})
 CREATE (:Resource {name: 'meeting_minutes.doc', type: 'protected'})
+CREATE (:Resource {name: 'my_payroll.xls', type: 'protected'})
+CREATE (:Resource {name: 'payroll.xls', type: 'protected'})
 
 //user match to role
 MATCH (user:User {name: 'susan'})
@@ -92,6 +101,13 @@ WITH 1 as _
 MATCH (user:User {name: 'vakul'})
 MATCH (role:Role {name: 'student'})
 MERGE (user)-[:HAS_ROLE]->(role)
+
+
+MATCH (role:Role {name: 'student'})
+MERGE (:User {name: 'matthew'})-[:HAS_ROLE]->(role)
+MERGE (:User {name: 'jonah'})-[:HAS_ROLE]->(role)
+MERGE (:User {name: 'orian'})-[:HAS_ROLE]->(role)
+MERGE (:User {name: 'asia'})-[:HAS_ROLE]->(role)
 
 
 //role match to policy
@@ -168,4 +184,42 @@ MERGE (policy)-[:CAN_READ]->(resource)
 
 
 
+//adding roellke
+CREATE (:User {name: 'roellke'})
 
+WITH 1 as _
+MATCH (user:User {name: 'roellke'})
+MATCH (role:Role)
+WHERE role.name IN ['admin', 'professor', 'auditor']
+MERGE (user)-[:HAS_ROLE]->(role)
+
+MATCH (policy:Policy {name: 'Policy4'})
+MATCH (resource1:Resource {name: 'confidential_report.pdf'})
+MERGE (policy)-[:CAN_READ]->(resource1)
+MERGE (policy)-[:CAN_WRITE]->(resource1)
+MERGE (policy)-[:CAN_DELETE]->(resource1)
+MERGE (policy)-[:CAN_CREATE]->(resource1)
+
+MATCH (policy:Policy {name: 'Policy4'})
+MATCH (resource2:Resource {name: 'meeting_minutes.doc'})
+MERGE (policy)-[:CAN_READ]->(resource2)
+MERGE (policy)-[:CAN_WRITE]->(resource2)
+MERGE (policy)-[:CAN_DELETE]->(resource2)
+MERGE (policy)-[:CAN_CREATE]->(resource2)
+
+MATCH (policy:Policy {name: 'Policy4'})
+MATCH (resource3:Resource {name: 'payroll.xls'})
+MERGE (policy)-[:CAN_READ]->(resource3)
+
+//adding employees
+MATCH (user:User)
+WHERE user.name IN ['tim', 'zende', 'vakul']
+MERGE (user)-[:HAS_ROLE]->(:Role {name: 'employee'})
+
+MATCH (user:User)-[:HAS_ROLE]->(role:Role {name: 'employee'})
+MATCH (policy:Policy {name: 'Policy5'})
+MERGE (role)-[:HAS_POLICY]->(policy)
+
+MATCH (policy:Policy {name: 'Policy5'})
+MATCH (resource:Resource {name: 'my_payroll.xls'})
+MERGE (policy)-[:CAN_READ]->(resource)

@@ -42,5 +42,28 @@ def index():
         return render_template('result.html', result=result)
     return render_template('index.html')
 
+@app.route('/add_user', methods=['GET', 'POST'])
+def add_user():
+    result_text = None
+    if request.method == 'POST':
+        user_name = request.form['user_name'].lower()
+        roles = [role.strip() for role in request.form['roles'].split(',')]
+        with driver.session() as session:
+            session.run("CREATE (:User {name: $name})", name=user_name)
+            for role in roles:
+                session.run(
+                    """
+                    MATCH (user:User {name: $user_name})
+                    MATCH (role:Role {name: $role})
+                    MERGE (user)-[:HAS_ROLE]->(role)
+                    """,
+                    user_name=user_name,
+                    role=role
+                )
+        result_text = f"User '{user_name}' added successfully."
+
+    return render_template('add_user.html', result=result_text)
+
+
 if __name__ == '__main__':
     app.run(debug=True)
