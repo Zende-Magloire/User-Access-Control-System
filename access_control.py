@@ -12,6 +12,17 @@ def check_access(user_name, action, resource_name):
     with driver.session() as session:
         result = session.run(
             """
+            MATCH (user:User {name: $user_name})
+            RETURN COUNT(user) > 0 AS user_exists
+            """,
+            user_name=user_name
+        )
+        record = result.single()
+        if not record["user_exists"]:
+            return f"{user_name.capitalize()} is not found in the database."
+
+        result = session.run(
+            """
             MATCH (user:User {name: $user_name})-[:HAS_ROLE]->(role:Role)-[:HAS_POLICY]->(policy)-[:CAN_READ|CAN_WRITE|CAN_CREATE|CAN_DELETE]->(resource:Resource {name: $resource_name})
             RETURN user.name AS user, role.name AS role, policy.name AS policy, resource.name AS resource, $action AS action, COUNT(*) > 0 AS allowed
             """,
@@ -20,17 +31,19 @@ def check_access(user_name, action, resource_name):
             action=action.upper()
         )
         record = result.single()
-
+        
         if record:
             allowed = record["allowed"]
             if allowed:
-                result_text = f"{record['user'].capitalize()} is allowed to {action} {resource_name}"
+                result_text = f"{record['user'].capitalize()} is allowed to {action} {resource_name}."
             else:
-                result_text = f"{record['user'].capitalize()} is not allowed to {action} {resource_name}"
+                result_text = f"{record['user'].capitalize()} is not allowed to {action} {resource_name}."
         else:
-            result_text = f"{user_name.capitalize()} is not found in the database"
+            result_text = f"{user_name.capitalize()} is not allowed to {action} {resource_name}."
 
     return result_text
+
+
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -77,6 +90,36 @@ def add_user():
                         result_text = f"User '{user_name}' added successfully."
 
     return render_template('add_user.html', result=result_text)
+
+def get_user_role(user_name):
+    with driver.session() as session:
+        result = session.run(
+            """
+            MATCH (user:User {name: $user_name})-[:HAS_ROLE]->(role:Role)
+            RETURN role.name AS role
+            """,
+            user_name=user_name
+        )
+        record = result.single()
+        if record:
+            return record["role"]
+        else:
+            return None
+
+@app.route('/verify_user', methods=['GET', 'POST'])
+def verify_user():
+    error = None
+    if request.method == 'POST':
+        user_name = request.form['user_name'].lower()
+        user_role = get_user_role(user_name)
+        if not user_role:
+            error = "You are not authorized to add a new user."
+        elif user_role in ['admin', 'auditor', 'manager', 'dean']:
+            return render_template('add_user.html', user_name=user_name)
+        else:
+            error = "You are not authorized to add a new user."
+    return render_template('verify_user.html', error=error)
+
 
 
 if __name__ == '__main__':
