@@ -211,6 +211,10 @@ MATCH (policy:Policy {name: 'Policy4'})
 MATCH (resource3:Resource {name: 'payroll.xls'})
 MERGE (policy)-[:CAN_READ]->(resource3)
 
+MATCH (policy:Policy {name: 'Policy4'})
+MATCH (resource3:Resource {name: 'payroll.xls'})
+MERGE (policy)-[:CAN_WRITE]->(resource3)
+
 //adding employees
 MATCH (user:User)
 WHERE user.name IN ['tim', 'zende', 'vakul']
@@ -223,3 +227,26 @@ MERGE (role)-[:HAS_POLICY]->(policy)
 MATCH (policy:Policy {name: 'Policy5'})
 MATCH (resource:Resource {name: 'my_payroll.xls'})
 MERGE (policy)-[:CAN_READ]->(resource)
+
+
+//role w more than one policy
+CREATE (:Role {name: 'manager'})
+
+MATCH (role:Role {name: 'manager'})
+MATCH (policy:Policy)
+WHERE policy.name IN ['Policy1', 'Policy4']
+MERGE (role)-[:HAS_POLICY]->(policy)
+
+CREATE (:User {name: 'wendi'})-[:HAS_ROLE]->(:Role {name: 'manager'})
+
+CREATE (:Role {name: 'manager'})
+MATCH (role:Role {name: 'student_employee'})
+MATCH (policy:Policy)
+WHERE policy.name IN ['Policy3', 'Policy5']
+MERGE (role)-[:HAS_POLICY]->(policy)
+
+CREATE (:Role {name: 'dean'})
+MATCH (role:Role {name: 'dean'})
+MATCH (policy:Policy)
+WHERE policy.name IN ['Policy1', 'Policy2', 'Policy4']
+MERGE (role)-[:HAS_POLICY]->(policy)
